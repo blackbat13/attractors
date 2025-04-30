@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Martins Mapping</title>
+    <script>if (typeof module === 'object') {
+        window.module = module;
+        module = undefined;
+    }</script>
+    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="../js/attractor.js"></script>
+    <script src="../js/martins_mapping.js"></script>
+    <script src="../js/brushy.js"></script>
+    <script>if (window.module) module = window.module;</script>
+    <link href="../css/main.css" type="text/css" rel="stylesheet"/>
+    <link href="../node_modules/bootstrap/dist/css/bootstrap.min.css" type="text/css" rel="stylesheet"/>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+</head>
+<body id="fractal_body">
+<canvas id="canvas"></canvas>
+<form>
+    <div>
+        <label for="colorInput">Color</label>
+        <input type="color" id="colorInput" value="#ff0000"/>
+    </div>
+    <div>
+        <label for="backgroundColorInput">Background color</label>
+        <input type="color" id="backgroundColorInput" value="#000000"/>
+    </div>
+    <div>
+        <label for="aInput">A: <span id="aValue">-1.4</span></label>
+        <input class="slider" type="range" min="-3" max="2" id="aInput" value="-1.4" step="0.001"/>
+    </div>
+    <div>
+        <label for="bInput">B: <span id="bValue">1.6</span></label>
+        <input class="slider" type="range" min="-2" max="2" id="bInput" value="1.6" step="0.001"/>
+    </div>
+    <div>
+        <label for="cInput">C: <span id="cValue">1.0</span></label>
+        <input class="slider" type="range" min="-2" max="2" id="cInput" value="1.0" step="0.001"/>
+    </div>
+    <div>
+        <label for="dInput">D: <span id="dValue">1.0</span></label>
+        <input class="slider" type="range" min="1" max="2" id="dInput" value="1.0" step="0.001"/>
+    </div>
+    <div>
+        <label for="pInput">P: <span id="pValue">0.5</span></label>
+        <input class="slider" type="range" min="-2" max="2" id="pInput" value="0.7" step="0.001"/>
+    </div>
+    <div>
+        <label for="opacityInput">Intensity: <span id="opacityValue">0.05</span></label>
+        <input class="slider" type="range" min="0.01" max="1" id="opacityInput" value="0.05" step="0.01"/>
+    </div>
+    <div class="form-check">
+        <label class="form-check-label">
+            <input class="form-check-input" type="checkbox" id="randomColorInput">
+            Random color
+        </label>
+    </div>
+    <div>
+        <label for="examples">Examples</label>
+        <select name="examples" id="examples">
+        </select>
+    </div>
+    <div>
+        <button class="btn btn-lg btn-primary" id="clearButton">Clear</button>
+    </div>
+    <div>
+        <button class="btn btn-lg btn-primary" id="stopButton">Stop</button>
+    </div>
+    <div>
+        <p>x<sub>n+1</sub> = y<sub>n</sub> - sgn(x<sub>n</sub>) * |b*x<sub>n</sub>-c|<sup>(p/d)</sup></p>
+        <p>y<sub>n+1</sub> = a - x<sub>n</sub></p>
+    </div>
+    <hr>
+    <div>
+        <p>x<sub>n+1</sub> = y<sub>n</sub> - sgn(x<sub>n</sub>) * |<span class="bVar"></span>*x<sub>n</sub>-<span
+                class="cVar"></span>|<sup>(<span class="pVar"></span>/<span class="dVar"></span>)</sup></p>
+        <p>y<sub>n+1</sub> = <span class="aVar"></span> - x<sub>n</sub></p>
+    </div>
+    <div>
+        <a class="btn btn-info" href="../index.html">Menu</a>
+    </div>
+</form>
+</body>
+<script>
+    jQuery(document).ready(function () {
+        let martinsMapping = new MartinsMapping('canvas');
+        martinsMapping.init();
+    });
+</script>
+</html>
