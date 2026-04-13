@@ -7,6 +7,8 @@ class Attractor {
         this.$canvas = $('#' + canvasId);
         this.canvasId = canvasId;
         this.valuesNames = valuesNames;
+        this.printInProgress = false;
+        this.minPrintButtonLockMs = 3000;
     }
 
     init() {
@@ -141,22 +143,39 @@ class Attractor {
         }, this));
 
         $('#printButton').click($.proxy(async function () {
+            if (this.printInProgress) {
+                return false;
+            }
+
             if (!window.desktopPrinter || !window.desktopPrinter.printCanvas) {
                 alert('Printing is available only in the desktop app.');
                 return false;
             }
+
+            this.printInProgress = true;
+            let startTime = Date.now();
+            let $printButton = $('#printButton');
+            $printButton.prop('disabled', true);
+            $printButton.text('Please wait...');
 
             try {
                 let dataUrl = this.canvas.toDataURL('image/png');
                 let result = await window.desktopPrinter.printCanvas(dataUrl);
                 if (!result.ok) {
                     alert(result.message || 'Printing failed.');
-                    return false;
+                } else {
+                    alert('Image saved and sent to printer tool:\n' + result.filePath);
                 }
-
-                alert('Image saved and sent to printer tool:\n' + result.filePath);
             } catch (error) {
                 alert('Printing failed: ' + error.message);
+            } finally {
+                let elapsedMs = Date.now() - startTime;
+                let waitMs = Math.max(0, this.minPrintButtonLockMs - elapsedMs);
+                setTimeout($.proxy(function () {
+                    this.printInProgress = false;
+                    $printButton.prop('disabled', false);
+                    $printButton.text('Print');
+                }, this), waitMs);
             }
 
             return false;
