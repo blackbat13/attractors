@@ -66,6 +66,8 @@ class Attractor {
     }
 
     prepareEvents() {
+        this.preparePrintControls();
+
         $('#speedInput').change($.proxy(function () {
             this.speed = $('#speedInput').val();
         }, this));
@@ -137,6 +139,38 @@ class Attractor {
             this.loadExample(selectedIndex);
             this.animationModeTime = 0;
         }, this));
+
+        $('#printButton').click($.proxy(async function () {
+            if (!window.desktopPrinter || !window.desktopPrinter.printCanvas) {
+                alert('Printing is available only in the desktop app.');
+                return false;
+            }
+
+            try {
+                let dataUrl = this.canvas.toDataURL('image/png');
+                let result = await window.desktopPrinter.printCanvas(dataUrl);
+                if (!result.ok) {
+                    alert(result.message || 'Printing failed.');
+                    return false;
+                }
+
+                alert('Image saved and sent to printer tool:\n' + result.filePath);
+            } catch (error) {
+                alert('Printing failed: ' + error.message);
+            }
+
+            return false;
+        }, this));
+    }
+
+    preparePrintControls() {
+        if (!$('#printButton').length) {
+            let printControls = '' +
+                '<div>' +
+                '    <button class="btn btn-lg btn-success" id="printButton">Print</button>' +
+                '</div>';
+            $('form').append(printControls);
+        }
     }
 
     loadExample(index) {

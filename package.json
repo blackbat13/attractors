@@ -26,6 +26,7 @@
       "css/**/*",
       "assets/**/*",
       "main.js",
+      "preload.js",
       "package.json"
     ],
     "win": {
