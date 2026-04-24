@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BFS Maze Generator</title>
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script>if (window.module) module = window.module;</script>
+    <link href="../css/main.css" type="text/css" rel="stylesheet"/>
+    <link href="../node_modules/bootstrap/dist/css/bootstrap.min.css" type="text/css" rel="stylesheet"/>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+</head>
+<body id="fractal_body">
+<canvas id="canvas"></canvas>
+<form>
+    <div>
+        <label for="speedInput">Speed</label>
+        <input class="slider" type="range" min="2" max="100" id="speedInput" value="10"/>
+    </div>
+    <div>
+        <label for="lengthInput">Length</label>
+        <input class="slider" type="range" min="4" max="100" id="lengthInput" value="10"/>
+    </div>
+    <div>
+        <label for="colorInput">Color</label>
+        <input type="color" id="colorInput" value="#ffffff"/>
+    </div>
+    <div>
+        <label for="opacityInput">Intensity: <span id="opacityValue">1</span></label>
+        <input class="slider" type="range" min="0.01" max="1" id="opacityInput" value="1" step="0.01"/>
+    </div>
+    <div>
+        <label for="changeColorInput">Change color</label>
+        <input type="checkbox" id="changeColorInput"/>
+    </div>
+    <div>
+        <button id="clearButton">Clear</button>
+    </div>
+    <div>
+        <button class="btn btn-success" id="printButton">Print</button>
+    </div>
+    <div>
+         <a class="btn btn-info" href="../index.html">Menu</a>
+    </div>
+</form>
+</body>
+<script>
+    jQuery(document).ready(function () {
+        let sizeX;
+        let sizeY;
+        let x;
+        let y;
+        let speed;
+        let color;
+        let backgroundColor;
+        let stop;
+        let percent;
+        let canvas;
+        let ctx;
+        let opacity;
+        let visited;
+        let bfsQueue;
+        let moves;
+        let moveLength;
+        let colorsArray;
+        let colorIndex;
+        let changeColor = false;
+        let colorChangeCount = 0;
+        let currentIndex;
+        let printInProgress = false;
+        let minPrintButtonLockMs = 3000;
+
+        init();
+
+        function init() {
+            prepareVariables();
+            setSliders();
+            prepareEvents();
+            requestAnimationFrame(draw);
+        }
+
+        function prepareVariables() {
+            sizeX = $("#canvas").width();
+            sizeX -= $("form").width();
+            $("#canvas").width(sizeX);
+            sizeY = $("#canvas").height();
+            x = 0;
+            y = 0;
+            speed = 10;
+            color = 0xffffff;
+            backgroundColor = "#000000";
+            stop = false;
+            percent = 5 / 100;
+            opacity = 1;
+            visited = [];
+            bfsQueue = [];
+            bfsQueue.push({x: sizeX / 2, y: sizeY / 2, fromX: sizeX / 2, fromY: sizeY / 2, distance: 0});
+            moves = [{x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}, {x: 0, y: 1}];
+            colorsArray = [0xff0000, 0x00ff00, 0x0000ff, 0xb00b00, 0xde1e7e, 0xe1e100, 0xBADA55, 0xF0FEAF, 0xac1d1c, 0xfacade, 0xc2e9fb, 0x96e6a1, 0xf68084, 0xfee140, 0x3cba92];
+            colorIndex = -1;
+            moveLength = 15;
+            currentIndex = 0;
+            prepareVisited();
+            prepareCanvas();
+        }
+
+        function getNextColor() {
+            colorIndex++;
+            colorIndex %= colorsArray.length;
+            return colorsArray[colorIndex];
+        }
+
+        function prepareVisited() {
+            for (let i = 0; i <= sizeX; ++i) {
+                visited[i] = [];
+            }
+        }
+
+        function setSliders() {
+            setSlidersValues();
+            setSlidersLabelsValues();
+        }
+
+        function setSlidersValues() {
+            $("#opacityInput").val(opacity);
+        }
+
+        function setSlidersLabelsValues() {
+            $("#opacityValue").html(opacity);
+        }
+
+        function prepareEvents() {
+            $("#speedInput").change(function () {
+                speed = parseInt($("#speedInput").val());
+            });
+
+            $("#lengthInput").change(function () {
+                moveLength = parseInt($("#lengthInput").val());
+            });
+
+            $("#colorInput").change(function () {
+                let tmp = $("#colorInput").val();
+                tmp = tmp.replace("#", "");
+                tmp = parseInt(tmp, 16);
+                color = tmp;
+            });
+
+            $("#backgroundColorInput").change(function () {
+                backgroundColor = $("#backgroundColorInput").val();
+                ctx.fillStyle = backgroundColor;
+                ctx.fillRect(0, 0, sizeX, sizeY);
+            });
+
+            $("#changeColorInput").change(function () {
+                changeColor = !changeColor;
+                if (!changeColor) {
+                    let tmp = $("#colorInput").val();
+                    tmp = tmp.replace("#", "");
+                    tmp = parseInt(tmp, 16);
+                    color = tmp;
+                }
+            });
+
+            $("#opacityInput").bind('input', function () {
+                opacity = parseFloat($("#opacityInput").val());
+                $("#opacityValue").html(opacity);
+            });
+
+            $("#clearButton").click(function () {
+                stop = true;
+                ctx.fillStyle = backgroundColor;
+                ctx.fillRect(0, 0, sizeX, sizeY);
+                bfsQueue = [];
+                bfsQueue.push({x: sizeX / 2, y: sizeY / 2, fromX: sizeX / 2, fromY: sizeY / 2, distance: 0});
+                currentIndex = 0;
+                prepareVisited();
+                stop = false;
+                return false;
+            });
+
+            $("#stopButton").click(function () {
+                stop = !stop;
+
+                if (stop) {
+                    $("#stopButton").html("Start");
+                } else {
+                    $("#stopButton").html("Stop");
+                }
+                return false;
+            });
+
+            $("#printButton").click(async function () {
+                if (printInProgress) {
+                    return false;
+                }
+
+                if (!window.desktopPrinter || !window.desktopPrinter.printCanvas) {
+                    alert('Printing is available only in the desktop app.');
+                    return false;
+                }
+
+                printInProgress = true;
+                let startTime = Date.now();
+                let $printButton = $('#printButton');
+                $printButton.prop('disabled', true);
+                $printButton.text('Please wait...');
+
+                try {
+                    let dataUrl = canvas.toDataURL('image/png');
+                    let result = await window.desktopPrinter.printCanvas(dataUrl);
+                    if (!result.ok) {
+                        alert(result.message || 'Printing failed.');
+                    } else {
+                        alert('Image saved and sent to printer tool:\n' + result.filePath);
+                    }
+                } catch (error) {
+                    alert('Printing failed: ' + error.message);
+                } finally {
+                    let elapsedMs = Date.now() - startTime;
+                    let waitMs = Math.max(0, minPrintButtonLockMs - elapsedMs);
+                    setTimeout(function () {
+                        printInProgress = false;
+                        $printButton.prop('disabled', false);
+                        $printButton.text('Print');
+                    }, waitMs);
+                }
+
+                return false;
+            });
+        }
+
+        function prepareCanvas() {
+            canvas = document.getElementById("canvas");
+            canvas.width = sizeX;
+            canvas.height = sizeY;
+            ctx = canvas.getContext("2d");
+            ctx.fillStyle = backgroundColor;
+            ctx.fillRect(0, 0, sizeX, sizeY);
+        }
+
+        function draw() {
+            requestAnimationFrame(draw);
+            if (stop || bfsQueue.length === 0) {
+                return;
+            }
+
+            colorChangeCount++;
+            if (colorChangeCount > 50 * 100 / moveLength && changeColor) {
+                colorChangeCount = 0;
+                color = getNextColor();
+            }
+
+            let xn, yn;
+            let rgb = hex2rgb(color);
+            ctx.fillStyle = color;
+            ctx.strokeStyle = "rgba(" + rgb[0] * 255 + "," + rgb[1] * 255 + "," + rgb[2] * 255 + "," + opacity + ")";
+            ctx.lineWidth = moveLength / 2;
+            ctx.beginPath();
+
+            for (let i = 0; i < speed && bfsQueue.length > 0 && !stop; ++i) {
+                colorChangeCount++;
+                let rnd;
+                let currentPoint = bfsQueue[0];
+                bfsQueue.splice(0, 1);
+                if (visited[Math.round(currentPoint.x)][Math.round(currentPoint.y)] === true) {
+                    continue;
+                }
+                visited[Math.round(currentPoint.x)][Math.round(currentPoint.y)] = true;
+
+                let distance = currentPoint.distance;
+                distance = Math.round(distance / (sizeX / moveLength));
+                distance = distance % 256 + 1;
+
+                ctx.moveTo(currentPoint.fromX, currentPoint.fromY);
+                let xGreater = currentPoint.x > currentPoint.fromX ? 1 : -1;
+                let yGreater = currentPoint.y > currentPoint.fromY ? 1 : -1;
+                let xEqual = currentPoint.x === currentPoint.fromX ? 0 : 1;
+                let yEqual = currentPoint.y === currentPoint.fromY ? 0 : 1;
+                ctx.lineTo(currentPoint.x + xEqual * xGreater * (moveLength / 4), currentPoint.y + yEqual * yGreater * (moveLength / 4));
+                ctx.stroke();
+
+                let possibleLine = [];
+                for (let j = 0; j < moves.length; ++j) {
+                    xn = Math.round(currentPoint.x + moves[j].x * moveLength);
+                    yn = Math.round(currentPoint.y + moves[j].y * moveLength);
+                    if (xn >= 0 && yn >= 0 && xn <= sizeX && yn <= sizeY && visited[xn][yn] !== true) {
+                        possibleLine.push({x: xn, y: yn});
+                    }
+                }
+
+                if (possibleLine.length === 0) {
+                    continue;
+                }
+
+                rnd = Math.floor(Math.random() * possibleLine.length);
+                xn = possibleLine[rnd].x;
+                yn = possibleLine[rnd].y;
+
+                possibleLine = shuffle(possibleLine);
+
+                for (let j = 0; j < possibleLine.length / 2; ++j) {
+                    bfsQueue.push({
+                        x: possibleLine[j].x,
+                        y: possibleLine[j].y,
+                        fromX: currentPoint.x,
+                        fromY: currentPoint.y,
+                        distance: currentPoint.distance + 1
+                    });
+                }
+            }
+        }
+
+        function shuffle(array) {
+            let currentIndex = array.length, temporaryValue, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex -= 1;
+
+                temporaryValue = array[currentIndex];
+                array[currentIndex] = array[randomIndex];
+                array[randomIndex] = temporaryValue;
+            }
+
+            return array;
+        }
+
+        function hex2rgb(hex) {
+            let rgb = [];
+            rgb[0] = (hex >> 16 & 255) / 255;
+            rgb[1] = (hex >> 8 & 255) / 255;
+            rgb[2] = (255 & hex) / 255;
+            return rgb;
+        }
+    });
+</script>
+</html>
