@@ -5,6 +5,7 @@ const path = require('path');
 
 // Set your command-line print executable here.
 const PRINTER_TOOL_EXE_PATH = 'TiMini-Print-Command-Line-Windows-x86_64.exe';
+const PRINTER_BLUETOOTH_DEVICE = 'X5h-30D0';
 
 function createMainWindow() {
   const mainWindow = new BrowserWindow({
@@ -52,7 +53,7 @@ ipcMain.handle('printer:printCanvas', async (_event, dataUrl) => {
   }
 
   return new Promise((resolve) => {
-    execFile(PRINTER_TOOL_EXE_PATH, [filePath], (error) => {
+    execFile(PRINTER_TOOL_EXE_PATH, [filePath, '--bluetooth', PRINTER_BLUETOOTH_DEVICE], (error) => {
       if (error) {
         resolve({ ok: false, message: 'Failed to execute printer tool: ' + error.message, filePath });
         return;
