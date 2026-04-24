@@ -20,7 +20,9 @@ class CliffordAttractor extends Attractor {
             return;
         }
 
+        this.applyPendingRestart();
         this.animationMode();
+        this.beginRenderFrame();
         let xn, yn;
         for (let i = 0; i < this.speed; ++i) {
             xn = Math.sin(this.values[0] * this.y) + this.values[2] * Math.cos(this.values[0] * this.x);
@@ -29,7 +31,7 @@ class CliffordAttractor extends Attractor {
             this.y = yn;
             let cx = Math.round(this.centerX + this.x * this.scale),
                 cy = Math.round(this.centerY + this.y * this.scale);
-            if (cx < 0 || cy < 0 || cx > this.sizeX || cy > this.sizeY) {
+            if (!this.trackPoint(this.x, this.y, cx, cy)) {
                 continue;
             }
 
@@ -44,6 +46,7 @@ class CliffordAttractor extends Attractor {
 
             this.pixels[cx][cy] = this.pixels[cx][cy] < 20 ? this.pixels[cx][cy] + 1 : 0;
         }
+        this.finishRenderFrame();
     }
 
     prepareExamples() {

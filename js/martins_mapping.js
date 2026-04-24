@@ -21,7 +21,9 @@ class MartinsMapping extends Attractor {
             return;
         }
 
+        this.applyPendingRestart();
         this.animationMode();
+        this.beginRenderFrame();
         let xn, yn;
         let color = Brushy.randomHexColor();
 
@@ -32,7 +34,7 @@ class MartinsMapping extends Attractor {
             this.y = yn;
             let cx = Math.round(this.centerX + this.x * this.scale),
                 cy = Math.round(this.centerY + this.y * this.scale);
-            if (cx < 0 || cy < 0 || cx > this.sizeX || cy > this.sizeY) {
+            if (!this.trackPoint(this.x, this.y, cx, cy)) {
                 continue;
             }
 
@@ -53,6 +55,7 @@ class MartinsMapping extends Attractor {
 
             this.pixels[cx][cy] = this.pixels[cx][cy] < 20 ? this.pixels[cx][cy] + 1 : 0;
         }
+        this.finishRenderFrame();
     }
 
     prepareExamples() {

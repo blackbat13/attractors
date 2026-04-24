@@ -134,6 +134,52 @@ form div {
     margin: 10px 0;
 }
 
+.render-status {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #d7c8a7;
+}
+
+.render-status--info {
+    background: #f4efe2;
+    color: #4b3f2a;
+}
+
+.render-status--success {
+    background: #edf6ea;
+    border-color: #9cc88f;
+    color: #214d1f;
+}
+
+.render-status--warning {
+    background: #fff4e5;
+    border-color: #df9f3d;
+    color: #6b3f00;
+}
+
+.render-status__title {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 18px;
+}
+
+.render-status__message {
+    margin: 0 0 10px;
+    line-height: 1.4;
+}
+
+.render-status__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.render-status__actions .btn {
+    height: auto;
+    min-height: 42px;
+    font-size: 16px;
+}
+
 input[type=range] {
     -webkit-appearance: none;
     width: 100%;

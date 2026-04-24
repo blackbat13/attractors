@@ -25,7 +25,9 @@ class SymmetricIconAttractor extends Attractor {
             return;
         }
 
+        this.applyPendingRestart();
         this.animationMode();
+        this.beginRenderFrame();
         let xn, yn;
         for (let i = 0; i < this.speed; ++i) {
             let zzbar = this.x * this.x + this.y * this.y;
@@ -48,7 +50,7 @@ class SymmetricIconAttractor extends Attractor {
 
             let cx = Math.round(this.centerX + this.x * this.scale),
                 cy = Math.round(this.centerY + this.y * this.scale);
-            if (cx < 0 || cy < 0 || cx > this.sizeX || cy > this.sizeY) {
+            if (!this.trackPoint(this.x, this.y, cx, cy)) {
                 continue;
             }
 
@@ -57,6 +59,7 @@ class SymmetricIconAttractor extends Attractor {
             this.ctx.fillStyle = 'rgba(' + rgb[0] * 255 + ',' + rgb[1] * 255 + ',' + rgb[2] * 255 + ',' + this.opacity + ')';
             this.ctx.fillRect(cx, cy, 1, 1);
         }
+        this.finishRenderFrame();
     }
 
     prepareExamples() {
