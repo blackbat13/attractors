@@ -470,9 +470,29 @@ class Attractor {
         console.log('Not implemented');
     }
 
+    getExampleLabel(example, index) {
+        if (!example) {
+            return 'Example ' + (index + 1);
+        }
+
+        let hasNumericName = typeof example.name === 'number' || /^\d+$/.test(String(example.name || ''));
+        if (!hasNumericName && example.name) {
+            return example.name;
+        }
+
+        if (!Array.isArray(example.values) || !example.values.length) {
+            return 'Example ' + (index + 1);
+        }
+
+        return this.valuesNames.map(function (valueName, valueIndex) {
+            let value = example.values[valueIndex];
+            return valueName.toUpperCase() + '=' + value;
+        }).join(', ');
+    }
+
     populateExamples() {
         for (let i = 0; i < this.examples.length; ++i) {
-            $('#examples').append('<option value="' + i + '">' + this.examples[i].name + '</option>');
+            $('#examples').append('<option value="' + i + '">' + this.getExampleLabel(this.examples[i], i) + '</option>');
         }
     }
 }
