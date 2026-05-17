@@ -71,7 +71,7 @@ class Attractor {
 
     prepareEvents() {
         this.prepareGuidanceControls();
-        this.preparePrintControls();
+        // this.preparePrintControls();
 
         $('#speedInput').change($.proxy(function () {
             this.speed = $('#speedInput').val();
