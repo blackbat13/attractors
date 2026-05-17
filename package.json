@@ -1,9 +1,38 @@
 {
   "name": "visul-attractors",
   "version": "1.0.0",
-  "main": "index.html",
+  "description": "Chaos attractor visualizations as an Electron desktop app",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "build": "electron-builder"
+  },
   "dependencies": {
     "jquery": "^3.7.1",
     "bootstrap": "^5.3.5"
+  },
+  "devDependencies": {
+    "electron": "^32.2.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.attractors.desktop",
+    "productName": "Attractors",
+    "files": [
+      "index.html",
+      "views/**/*",
+      "js/**/*",
+      "css/**/*",
+      "assets/**/*",
+      "main.js",
+      "preload.js",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64", "arm64", "ia32"] }
+      ]
+    }
   }
 }

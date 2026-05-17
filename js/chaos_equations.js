@@ -27,6 +27,8 @@ class ChaosEquations extends Attractor {
             return;
         }
 
+        this.applyPendingRestart();
+        this.beginRenderFrame();
         let xn, yn;
         for (let i = 0; i < this.speed; ++i) {
             this.t+=this.timeChange;
@@ -41,7 +43,7 @@ class ChaosEquations extends Attractor {
             this.y = yn;
             let cx = Math.round(this.centerX + (this.x * this.scale)),
                 cy = Math.round( (this.y * this.scale));
-            if (cx < 0 || cy < 0 || cx > this.sizeX || cy > this.sizeY) {
+            if (!this.trackPoint(this.x, this.y, cx, cy)) {
                 continue;
             }
 
@@ -56,6 +58,7 @@ class ChaosEquations extends Attractor {
 
             this.pixels[cx][cy] = this.pixels[cx][cy] < 20 ? this.pixels[cx][cy] + 1 : 0;
         }
+        this.finishRenderFrame();
     }
 
     prepareExamples() {
